@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.edu.xidian.hellowordld.helloworld.MainActivity">
+
+    <LinearLayout
+        android:id="@+id/ll_1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#33ccff"
+        android:orientation="vertical"
+        android:padding="100dp">
+        <Button
+            android:id="@+id/bt_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#ccffff"
+            android:text="双人模式"
+            android:textSize="20sp"
+            android:padding="15dp"
+            android:layout_marginTop="10dp"/>/>
+
+        <Button
+            android:id="@+id/bt_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#ccffff"
+            android:text="游戏设置"
+            android:textSize="20sp"
+            android:padding="15dp"
+            android:layout_marginTop="10dp"/>/>
+        <Button
+            android:id="@+id/bt_3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#ccffff"
+            android:text="查看帮助"
+            android:textSize="20sp"
+            android:padding="15dp"
+            android:layout_marginTop="10dp"/>
+
+    </LinearLayout>
+</android.support.constraint.ConstraintLayout>

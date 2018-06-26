@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">hello world</string>
+    <string name="help_information">
+        Help\n
+        1.请确保手机和要连接的用户已经配过对\n
+        2.请打开蓝牙\n
+        3.请调高媒体音量
+    </string>
+    <string name="title_activity_login_test">Sign in</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password (optional)</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+</resources>

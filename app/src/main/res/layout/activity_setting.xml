@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.edu.xidian.hellowordld.helloworld.settingActivity">
+
+    <LinearLayout
+        android:id="@+id/li_set"
+        android:layout_width="378dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="32dp"
+        android:orientation="vertical"
+        android:padding="100dp"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="41dp">
+        <TextView
+            android:id="@+id/yinliangView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:text="音量"
+            tools:layout_editor_absoluteX="97dp"
+            tools:layout_editor_absoluteY="107dp"
+            android:gravity="bottom|left" />
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:text="游戏模式"
+            tools:layout_editor_absoluteX="81dp"
+            tools:layout_editor_absoluteY="137dp" />
+    </LinearLayout>
+
+
+</android.support.constraint.ConstraintLayout>
