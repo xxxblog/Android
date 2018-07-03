@@ -32,22 +32,23 @@ import com.edu.xidian.hellowordld.helloworld.bluethread.ClientConnectThread;
 import com.edu.xidian.hellowordld.helloworld.bluethread.ConnectedThread;
 import com.edu.xidian.hellowordld.helloworld.bluethread.Constant;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 public class bluteToothActivity extends Activity {
     private static int BLUTOOTH_STATUS = 0;
-    private Button serchButton,creteServerButton;
+    private Button serchButton,creteServerButton,startGame;
     public List<BluetoothDevice> mDeviceList=new ArrayList<>();
-    public List<BluetoothDevice> mBoubdDeviceList=new ArrayList<>();
+    public static List<BluetoothDevice> mBoubdDeviceList=new ArrayList<>();
     public   BluetoothAdapter BTAdapter;
     public DeviceAdapter  mAdapter,bindAapter;
     public ListView  mListView,bindListView;
-    public Handler mUIHandler;
+    public static Handler mUIHandler;
     public ConnectedThread mConnectThread;
-    public ClientConnectThread clientConnectThread;
-    public AcceptThread serverAcceptThread;
+    public static ClientConnectThread clientConnectThread;
+    public static AcceptThread serverAcceptThread;
     public BluetoothSocket serverSocket;
     public ProgressBar creteServerBar,serchBar;
     public TextView textView;
@@ -56,68 +57,51 @@ public class bluteToothActivity extends Activity {
     ArrayList bandDeviceList,findDeviceList ;
     public MyAPP app;
 
-//-----game变量
-    ShakeDetector myshakeDetect;
-    Context context;
-    TextView gameview;
-    ShakeDetector.OnShakeListener listener;
-    AcceptThread gServerThread;
-    ClientConnectThread gClientThread;
-    long startTime,endTime;
-    public BluetoothAdapter mBluetoothAdapter;
-
     @SuppressLint("HandlerLeak")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blute_tooth);
         //处理接收到的消息
-        //HandlerThread mHandlerThread = new HandlerThread("handler_thread");
-       // mHandlerThread.start();
-
         mUIHandler= new Handler(){
             @Override
             public void handleMessage(Message msg) {
                 String info = (String) msg.obj;
                 switch (msg.what) {
-                    //若成功连接客户端的bar停止
-                    //连接成功，跳转游戏界面
+                    //服务器获得客户，使右边的bar停止
                     case Constant.MSG_GOT_A_CLIENT:
-                        //app.setAcceptThread(serverAcceptThread);
-                        //Intent intentBlute = new Intent(bluteToothActivity.this,GameActivity.class);
-                        //startActivity(intentBlute);
-                        //playGame();
-
-                        //serverAcceptThread.sendData();
                         creteServerBar.setVisibility(View.INVISIBLE);
-                        //Toast.makeText(bluteToothActivity.this, info, 0).show();
+                        Intent intent=new Intent();
+                        intent.setClass(bluteToothActivity.this, GameActivity.class);
+                        intent.putExtra("flag", 1);
+                        startActivity(intent);
                         break;
 
                     //服务的收到数据让右边的转
                     case Constant.MSG_GOT_DATA:
                         creteServerBar.setVisibility(View.VISIBLE);
+                        //gameview.setText(""+msg.obj);
                         textView.setText(""+msg.obj);//获得传递过来的数据
                         //Toast.makeText(bluteToothActivity.this, info, 0).show();
                         break;
-                    //客户端发送成功，成功发送数据，让搜索的bar转
 
+                    //客户端发送成功，成功发送数据，让搜索的bar转
                     case Constant.MSG_SEND_DATA:
                         serchBar.setVisibility(View.VISIBLE);
-                        //Toast.makeText(bluteToothActivity.this, info, 0).show();
                         break;
                     //出错让服务器右边转
                     case Constant.MSG_ERROR:
                         creteServerBar.setVisibility(View.VISIBLE);
-                        //Toast.makeText(bluteToothActivity.this, info, 0).show();
                         break;
                 }
             }
         };
-        app.setHandler(mUIHandler);
 
-        //测试用
+
+        //**************测试用
         textView = findViewById(R.id.newdecie);
-
+        // 按钮定义
+        //gameview = findViewById(R.id.game_textview);
         serchButton = (Button) findViewById(R.id.serch_button);
         creteServerButton = (Button) findViewById(R.id.crete_server);
         mAdapter = new DeviceAdapter(mDeviceList,getApplicationContext());
@@ -129,6 +113,7 @@ public class bluteToothActivity extends Activity {
 
         //获取蓝牙的适配器
         BTAdapter = BluetoothAdapter.getDefaultAdapter();
+
         mListView = findViewById(R.id.devie_List);
         mListView.setAdapter(mAdapter);
 
@@ -150,21 +135,26 @@ public class bluteToothActivity extends Activity {
 
                 bindAapter.notifyDataSetChanged();
 
-                String hello = "hello";
+                //***************测试蓝牙连接后发送代码
+                /*String hello = "hello";
                 byte[] hi=hello.getBytes();
-                clientConnectThread.sendData(hi);
+                clientConnectThread.sendData(hi);*/
             }
         });
         //创建服务器按钮
         creteServerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //创建服务器线程,循环监听
-                creteServerBar.setVisibility(View.VISIBLE);
+                /*creteServerBar.setVisibility(View.VISIBLE);
                 serverAcceptThread = new AcceptThread(BTAdapter,mUIHandler);
-                serverAcceptThread.start();
+                serverAcceptThread.start();*/
+                Intent intent=new Intent();
+                intent.setClass(bluteToothActivity.this, GameActivity.class);
+                intent.putExtra("flag", 1);
+                startActivity(intent);
             }
         });
+
 
         //********************蓝牙控制
         if(BTAdapter==null){
@@ -191,23 +181,7 @@ public class bluteToothActivity extends Activity {
         registerReceiver(mReceiver,filter);
     }
 
-    public void playGame(){
-        context = getApplicationContext();
-        myshakeDetect=new ShakeDetector(context);
-        setContentView(R.layout.activity_game);
-        //注册listener，完成接口内容
-        myshakeDetect.registerOnShakeListener(new ShakeDetector.OnShakeListener(){
-            @Override
-            public void onShake(){
-                endTime =  System.currentTimeMillis();
-                myshakeDetect.stop();
-            }
-        });
-        myshakeDetect.start();
-        startTime = System.currentTimeMillis();
-        gameview = findViewById(R.id.game_textview);
 
-    }
     //开启蓝牙
     private void turnOnBlueTooth(BluetoothAdapter BtAdapter){
         if(!BtAdapter.isEnabled()){
@@ -259,8 +233,15 @@ public class bluteToothActivity extends Activity {
             if (clientConnectThread !=null){
                 clientConnectThread.cancel();
             }
-            clientConnectThread = new ClientConnectThread(device,BTAdapter,mUIHandler);
-            clientConnectThread.start();
+
+            //*******************测试在下一个界面连接服务器
+            Intent intent=new Intent();
+            intent.setClass(bluteToothActivity.this, GameActivity.class);
+            intent.putExtra("flag", 2);
+            intent.putExtra("i", i);
+            startActivity(intent);/**/
+            /*clientConnectThread = new ClientConnectThread(device,BTAdapter,mUIHandler);
+            clientConnectThread.start();*/
         }
     };
 
