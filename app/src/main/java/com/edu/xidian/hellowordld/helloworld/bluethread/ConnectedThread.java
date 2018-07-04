@@ -9,6 +9,8 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+
 import android.os.Handler;
 
 /**
@@ -20,13 +22,12 @@ public class ConnectedThread extends Thread {
     private final InputStream mmInStream;
     private final OutputStream mmOutStream;
     private final Handler mHandler;
-
+    private static ByteBuffer buff = ByteBuffer.allocate(8);
     public ConnectedThread(BluetoothSocket socket,Handler handler){
         mmsocket = socket;
         InputStream tmpIN = null;
         OutputStream tmpOut = null;
         mHandler = handler;
-
         try {
             tmpIN = socket.getInputStream();
             tmpOut = socket.getOutputStream();
@@ -46,9 +47,13 @@ public class ConnectedThread extends Thread {
                 bytes = mmInStream.read(buffer);
                 if (bytes > 0) {
                     //测试
-                    //mHandler.sendEmptyMessage(Constant.MSG_GOT_DATA);
+                    //将数据转换为long类型
+                    //buff.put(buffer, 0, buffer.length);
                     Message msg = new Message();
-                    msg.obj = new String(buffer,0,bytes,"utf-8");
+                    //msg.obj = buff.getLong();
+                    //msg.obj=buffer;
+                    msg.obj = new String(buffer);
+                    //msg.obj = new String(buffer,0,bytes,"utf-8");
                     msg.what = Constant.MSG_GOT_DATA;
                     mHandler.sendMessage(msg);
                     //将收到的数据转换为

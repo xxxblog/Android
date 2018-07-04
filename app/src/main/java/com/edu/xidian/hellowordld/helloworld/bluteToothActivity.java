@@ -131,10 +131,11 @@ public class bluteToothActivity extends Activity {
                 bindAapter.refresh(mBoubdDeviceList);
                 //开启扫描
                 BTAdapter.startDiscovery();
+                //监听搜索到的
                 mListView.setOnItemClickListener(bindDeviceClick);
-
+                //绑定设备跟新
                 bindAapter.notifyDataSetChanged();
-
+                getBindDevice(BTAdapter);
                 //***************测试蓝牙连接后发送代码
                 /*String hello = "hello";
                 byte[] hi=hello.getBytes();

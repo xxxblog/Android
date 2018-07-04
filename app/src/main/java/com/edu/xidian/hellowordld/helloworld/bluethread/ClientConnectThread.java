@@ -38,6 +38,7 @@ public class ClientConnectThread extends Thread{
         //连接服务器
         try{
             mmSocket.connect();
+            mHandler.sendEmptyMessage(Constant.MSG_CONNECTED_TO_SERVER);
         }catch (Exception connectException){
             mHandler.sendMessage(mHandler.obtainMessage(Constant.MSG_ERROR,connectException));
             try {

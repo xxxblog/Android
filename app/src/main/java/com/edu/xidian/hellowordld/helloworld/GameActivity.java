@@ -16,7 +16,10 @@ import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.edu.xidian.hellowordld.helloworld.bluethread.AcceptThread;
 import com.edu.xidian.hellowordld.helloworld.bluethread.ClientConnectThread;
@@ -38,11 +41,14 @@ public class GameActivity extends Activity {
     TextView gameview;
     ShakeDetector.OnShakeListener listener;
     AcceptThread serverAcceptThread;
+    ProgressBar starGameBar;
     ClientConnectThread gClientThread,textClient;
     public Handler mUIHandler;
     long startTime,endTime,ontherTime,myTime,flagTime;
+    ImageView gameImageview;
     Button gameButton;
-    int flag;
+    int flag,iIsOrNotPlay,oIsOrNotPlay;
+    String hello = new String("hello.");
     //播放音频
     private MediaPlayer mp = new MediaPlayer();
     public BluetoothAdapter mBluetoothAdapter;
@@ -57,14 +63,19 @@ public class GameActivity extends Activity {
         context = getApplicationContext();
         gameview = findViewById(R.id.game_textview);
         gameButton = (Button)findViewById(R.id.game_button);
+        starGameBar = findViewById(R.id.start_game);
+        gameImageview = findViewById(R.id.game_image);
         myshakeDetect=new ShakeDetector(context);
         Intent intent=getIntent();
         mBluetoothAdapter= BluetoothAdapter.getDefaultAdapter();
         flag=intent.getIntExtra("flag",1);
         flagTime=123;
+        //己方是否开始玩，0：没开始，1：开始了
+        iIsOrNotPlay=0;
+        oIsOrNotPlay=0;
         myTime=flagTime;
         ontherTime=flagTime;
-
+        starGameBar.setVisibility(View.INVISIBLE);
         //----------handle传不过来，所以需要在这个界面连接和创建
         //应该使用套接字线程的Hadnler
         mUIHandler= new Handler() {
@@ -78,17 +89,34 @@ public class GameActivity extends Activity {
                     case Constant.MSG_GOT_DATA:
                         //byte[] testmy=((String) msg.obj).getBytes();
                         String testString=msg.obj.toString();
-                        byte[] testmy=testString.getBytes();
-                        ontherTime=BytesToLong(testmy);
-                        //ontherTime = Long.parseLong(testString);
-                        //ontherTime = Long.valueOf(testString).longValue();
-                        //gameview.setText("收到消息时间"+testString);
-                        gameview.setText("收到消息时间"+String.valueOf(ontherTime));
-                        showResult(ontherTime,myTime);
+                        String[] he = testString.split("\\.");
+                        //如果收到hello代表对方准备开始游戏,如果我们也准备开始游戏里则开始游戏
+                        if (he[0].equals("hello")){
+                            //我们已经准备开始了
+                            if (iIsOrNotPlay==1){
+                                gameview.setText("开始游戏");
+                                starGameBar.setVisibility(View.INVISIBLE);
+                                gameImageview.setImageResource(R.drawable.badao);
+                                myshakeDetect.start();
+                                startTime = System.currentTimeMillis();
+                            }else {
+                                oIsOrNotPlay=1;
+                            }
+                        }
+                        //否则对方发送的为时间，进行结果判断
+                        else {
+                            byte[] testmy = testString.getBytes();
+                            ontherTime = BytesToLong(testmy);
+                            String buer=String.valueOf(hello.equals(testString));
+                            //gameview.setText("收到消息时间" + String.valueOf(ontherTime));
+                            showResult(ontherTime, myTime);
+                        }
                         break;
                     case Constant.MSG_SEND_DATA:
                         //gameview.setText("检测到正在发送消息");
                         break;
+                    case Constant.MSG_ERROR:
+                        Toast.makeText(GameActivity.this,"连接错误",Toast.LENGTH_SHORT).show();
                 }
             }
         };
@@ -117,16 +145,22 @@ public class GameActivity extends Activity {
             @Override
             public void onClick(View view) {
                 //************************播放音乐显示，图片，音乐停止时开启移动检测
-
-                String hello = "hello";
                 byte[] hi=hello.getBytes();
-                myshakeDetect.start();
-                startTime = System.currentTimeMillis();
-                /*if (flag!=1){
+                starGameBar.setVisibility(View.VISIBLE);
+                if (flag!=1){
                     gClientThread.sendData(hi);
+                    iIsOrNotPlay=1;
                 }else {
                     serverAcceptThread.sendData(hi);
-                }*/
+                    iIsOrNotPlay=1;
+                }
+                //对方已发送
+                if(oIsOrNotPlay!=0){
+                    starGameBar.setVisibility(View.INVISIBLE);
+                    gameImageview.setImageResource(R.drawable.badao);
+                    myshakeDetect.start();
+                    startTime = System.currentTimeMillis();
+                }
 
                 /*Intent intent=getIntent();
                 int i = intent.getIntExtra("i",1);
@@ -184,12 +218,16 @@ public class GameActivity extends Activity {
         if(!oTime.equals(flagTime) && !mTime.equals(flagTime)){
             //发来的时间比自己小，本机输
             if (oTime<mTime){
+                gameImageview.setImageResource(R.drawable.loos);
                 gameview.setText("很遗憾，你的速度没有对方快。");
             }else {
+                gameImageview.setImageResource(R.drawable.win);
                 gameview.setText("你的手速快过了对方！");
             }
             ontherTime=flagTime;
             myTime=flagTime;
+            iIsOrNotPlay=0;
+            oIsOrNotPlay=0;
         }
         else {
             if (oTime.equals(flagTime)){
