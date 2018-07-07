@@ -2,9 +2,11 @@
     <string name="app_name">拔刀吧</string>
     <string name="help_information">
         Help\n
-        1.请确保手机和要连接的用户已经配过对\n
-        2.请打开蓝牙\n
-        3.请调高媒体音量
+        1.进入游戏模式后会提示是否打开蓝牙\n
+        2.打开蓝牙后点击搜索，确保另一个游戏者打开了蓝牙可见\n
+        3.点击搜索到的目标蓝牙名称,进行蓝牙绑定\n
+        4.再次点击搜索按钮进行刷新\n
+        5.这时你可以选择创建房间或者加入房间\n
     </string>
     <string name="title_activity_login_test">Sign in</string>
 
