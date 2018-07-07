@@ -46,23 +46,25 @@ public class ConnectedThread extends Thread {
             try{
                 bytes = mmInStream.read(buffer);
                 if (bytes > 0) {
-                    //测试
-                    //将数据转换为long类型
-                    //buff.put(buffer, 0, buffer.length);
+
                     Message msg = new Message();
-                    //msg.obj = buff.getLong();
-                    //msg.obj=buffer;
                     msg.obj = new String(buffer);
                     //msg.obj = new String(buffer,0,bytes,"utf-8");
                     msg.what = Constant.MSG_GOT_DATA;
                     mHandler.sendMessage(msg);
-                    //将收到的数据转换为
-                    //Message message = mHandler.obtainMessage(Constant.MSG_GOT_DATA,new String(buffer,0,bytes,"utf-8"));
                 }
                 Log.d("GOTMSG", "massage size" + bytes);
             }catch (IOException e){
-                mHandler.sendMessage(mHandler.obtainMessage(Constant.MSG_ERROR,e));
+                if (mmsocket!=null){
+                    cancel();
+                }
+                mHandler.sendEmptyMessage(Constant.MSG_ERROR);
                 break;
+            }catch (Exception errpt){
+                if (mmsocket!=null){
+                    cancel();
+                }
+                mHandler.sendEmptyMessage(Constant.MSG_ERROR);
             }
         }
     }

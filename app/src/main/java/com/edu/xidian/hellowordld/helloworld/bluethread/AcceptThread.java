@@ -44,7 +44,7 @@ public class AcceptThread extends Thread{
                 //获取用于通信的soc
                 socket = mmServerSocket.accept();
             }catch (IOException e){
-                 mHandler.sendMessage(mHandler.obtainMessage(Constant.MSG_ERROR,e));
+                mHandler.sendEmptyMessage(Constant.MSG_FINISH_LISTENING);
                  break;
             }
             if (socket != null){

@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -34,7 +35,6 @@ import java.util.List;
 /**
  * Created by HH on 2018/6/23.
  */
-
 public class GameActivity extends Activity {
     ShakeDetector myshakeDetect;
     Context context;
@@ -50,7 +50,15 @@ public class GameActivity extends Activity {
     int flag,iIsOrNotPlay,oIsOrNotPlay;
     String hello = new String("hello.");
     //播放音频
-    private MediaPlayer mp = new MediaPlayer();
+    private MediaPlayer  mMediaPlayer ;
+    private MediaPlayer  badaoMediaPlayer = new MediaPlayer();
+    private int jinZhangID;
+    private int timeSize;
+    //管理音频
+    private AudioManager mAm;
+    //设置数据
+    SharedPreferences mSharedPreferences;
+
     public BluetoothAdapter mBluetoothAdapter;
     public  List<BluetoothDevice> myBoubdDeviceList;
     private static ByteBuffer longtoByteBuffer = ByteBuffer.allocate(8);
@@ -68,8 +76,13 @@ public class GameActivity extends Activity {
         myshakeDetect=new ShakeDetector(context);
         Intent intent=getIntent();
         mBluetoothAdapter= BluetoothAdapter.getDefaultAdapter();
+        //获取用户身份
         flag=intent.getIntExtra("flag",1);
         flagTime=123;
+        //获取选择的音乐和时间上限
+        mSharedPreferences = this.getSharedPreferences("data",MODE_PRIVATE);
+
+        initMP(badaoMediaPlayer,Constant.bajian2);
         //己方是否开始玩，0：没开始，1：开始了
         iIsOrNotPlay=0;
         oIsOrNotPlay=0;
@@ -87,18 +100,35 @@ public class GameActivity extends Activity {
                         gameview.setText("连接成功");
                         break;
                     case Constant.MSG_GOT_DATA:
-                        //byte[] testmy=((String) msg.obj).getBytes();
                         String testString=msg.obj.toString();
+                        gameview.setText(testString);
                         String[] he = testString.split("\\.");
                         //如果收到hello代表对方准备开始游戏,如果我们也准备开始游戏里则开始游戏
                         if (he[0].equals("hello")){
                             //我们已经准备开始了
+                            if (flag!=1) {
+                                timeSize=Integer.valueOf(he[2]);
+                                jinZhangID=Integer.valueOf(he[1]);
+                            }
                             if (iIsOrNotPlay==1){
-                                gameview.setText("开始游戏");
+                                if (mMediaPlayer==null){
+                                    mMediaPlayer = new MediaPlayer();
+                                }
+                                initJinZhang(mMediaPlayer, Constant.jinZhangArray[jinZhangID],timeSize);
                                 starGameBar.setVisibility(View.INVISIBLE);
-                                gameImageview.setImageResource(R.drawable.badao);
-                                myshakeDetect.start();
-                                startTime = System.currentTimeMillis();
+                                gameview.setText("请在音乐结束后晃动手机");
+                                mMediaPlayer.start();
+                                //紧张音乐播放完毕
+                                mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                                    @Override
+                                    public void onCompletion(MediaPlayer mp) {
+                                        myshakeDetect.start();
+                                        startTime = System.currentTimeMillis();
+                                        gameview.setText("紧张完毕");
+                                        relaseMP(mMediaPlayer);
+                                        mMediaPlayer=null;
+                                    }
+                                });
                             }else {
                                 oIsOrNotPlay=1;
                             }
@@ -112,63 +142,73 @@ public class GameActivity extends Activity {
                             showResult(ontherTime, myTime);
                         }
                         break;
+
                     case Constant.MSG_SEND_DATA:
                         //gameview.setText("检测到正在发送消息");
                         break;
                     case Constant.MSG_ERROR:
-                        Toast.makeText(GameActivity.this,"连接错误",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(GameActivity.this,"连接断开",Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(GameActivity.this,bluteToothActivity.class);
+                        startActivity(intent);
+                    case Constant.MSG_CONNECT_ERROR:
+                        Toast.makeText(GameActivity.this,"请重新进入房间",Toast.LENGTH_SHORT).show();
+                        Intent intentHelp = new Intent(GameActivity.this,bluteToothActivity.class);
+                        startActivity(intentHelp);
                 }
             }
         };
         //flag=1为服务器,分别获取自己的套接字线程
         if (flag!=1){
             gameview.setText("我是客户端");
-            //
-            //textClient = bluteToothActivity.clientConnectThread;
+            //获取要连接的设备编号
             int i = intent.getIntExtra("i",1);
             connectServer(i);
-            /*myBoubdDeviceList=bluteToothActivity.mBoubdDeviceList;
-            gameview.setText("开始连接服务端");
-            gClientThread = new ClientConnectThread(myBoubdDeviceList.get(i),mBluetoothAdapter,mUIHandler);
-            gClientThread.start();
-            connectServer(intent.getIntExtra("i",1));*/
         }else {
-            gameview.setText("我是服务端");
+            //gameview.setText("我是服务端");
             createServer();
-            //serverAcceptThread = bluteToothActivity.serverAcceptThread;
+            jinZhangID = mSharedPreferences.getInt("jinzhang",0);
         }
 
-
-
-        //准备游戏
+        //准备游戏Button
         gameButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //************************播放音乐显示，图片，音乐停止时开启移动检测
                 byte[] hi=hello.getBytes();
+                if (mMediaPlayer==null){
+                mMediaPlayer = new MediaPlayer();
+                }
                 starGameBar.setVisibility(View.VISIBLE);
                 if (flag!=1){
                     gClientThread.sendData(hi);
                     iIsOrNotPlay=1;
                 }else {
-                    serverAcceptThread.sendData(hi);
+                    int temp = mSharedPreferences.getInt("time",6);
+                    timeSize=getRandomeTime(4,temp);
+                    String h ="hello."+jinZhangID+"."+timeSize+".";
+                    byte[] hello=h.getBytes();
+                    serverAcceptThread.sendData(hello);
                     iIsOrNotPlay=1;
                 }
                 //对方已发送
                 if(oIsOrNotPlay!=0){
+                    initJinZhang(mMediaPlayer,Constant.jinZhangArray[jinZhangID],timeSize);
                     starGameBar.setVisibility(View.INVISIBLE);
-                    gameImageview.setImageResource(R.drawable.badao);
-                    myshakeDetect.start();
-                    startTime = System.currentTimeMillis();
+                    gameview.setText("请在音乐结束后晃动手机");
+                    //播放紧张的音乐
+                    mMediaPlayer.start();
+                    //紧张音乐结束后检测晃动
+                    mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                        @Override
+                        public void onCompletion(MediaPlayer mp) {
+                            myshakeDetect.start();
+                            startTime = System.currentTimeMillis();
+                            gameview.setText("请晃动手机");
+                            relaseMP(mMediaPlayer);
+                            mMediaPlayer=null;
+                        }
+                    });
                 }
-
-                /*Intent intent=getIntent();
-                int i = intent.getIntExtra("i",1);
-                myBoubdDeviceList=bluteToothActivity.mBoubdDeviceList;
-                BluetoothAdapter BTAdapter = BluetoothAdapter.getDefaultAdapter();
-                gameview.setText("开始连接服务端");
-                gClientThread = new ClientConnectThread(myBoubdDeviceList.get(i),BTAdapter,mUIHandler);
-                gClientThread.start();*/
             }
         });
 
@@ -176,13 +216,13 @@ public class GameActivity extends Activity {
         myshakeDetect.registerOnShakeListener(new ShakeDetector.OnShakeListener(){
             @Override
             public void onShake(){
+                badaoMediaPlayer.start();
+                gameImageview.setImageResource(R.drawable.badao);
                 gameview.setText("");
                 endTime =  System.currentTimeMillis();
                 myshakeDetect.stop();
                 myTime=endTime-startTime;
-
                 byte[] myByte;
-
                 myByte=long2byte(endTime-startTime);
                 if (flag!=1){
                     gameview.setText("发送time:"+String.valueOf(endTime-startTime));
@@ -195,13 +235,10 @@ public class GameActivity extends Activity {
             }
         });
 
-        //**********游戏部分
-        //2.播放音乐
-        //音乐停止时开始监听
-        //启动监听者,开始计时
-        /*myshakeDetect.start();
-        startTime = System.currentTimeMillis();*/
+    }
 
+    private int getRandomeTime(int min,int max) {
+        return min + (int)(Math.random() * ((max - min) + 1));
     }
 
     private void connectServer(int i) {
@@ -224,23 +261,26 @@ public class GameActivity extends Activity {
                 gameImageview.setImageResource(R.drawable.win);
                 gameview.setText("你的手速快过了对方！");
             }
-            ontherTime=flagTime;
-            myTime=flagTime;
-            iIsOrNotPlay=0;
-            oIsOrNotPlay=0;
         }
         else {
             if (oTime.equals(flagTime)){
-                gameview.setText("对方未发送时间");
+                gameImageview.setImageResource(R.drawable.win);
+                gameview.setText("对方甚至没来的及发送他的时间");
             }
             if (mTime.equals(flagTime)){
-                gameview.setText("你还没开始游戏");
+                //gameImageview.setImageResource(R.drawable.loos);
+                gameview.setText("请拔出您的宝剑！");
             }
         }
+        ontherTime=flagTime;
+        myTime=flagTime;
+        iIsOrNotPlay=0;
+        oIsOrNotPlay=0;
+        gameButton.setText("再次游戏");
     }
 
     private void createServer() {
-        gameview.setText("创建服务器");
+        //gameview.setText("创建服务器");
         if (serverAcceptThread !=null){
             serverAcceptThread.cancel();
         }
@@ -248,33 +288,42 @@ public class GameActivity extends Activity {
         serverAcceptThread.start();
     }
     public static byte[] long2byte(long res) {
-        byte[] buffer = new byte[8];
-        for (int i = 0; i < 8; i++) {
-            int offset = 64 - (i + 1) * 8;
-            buffer[i] = (byte) ((res >> offset) & 0xff);
+        byte[] buffer=new byte[8];
+        for (int i=0;i<8;i++) {
+            int offset=64-(i+1)*8;
+            buffer[i]=(byte)((res>>offset)&0xff);
         }
         return buffer;
     }
     public static long BytesToLong(byte[] buffer) {
-        long  values = 0;
-        for (int i = 0; i < 8; i++) {
-            values <<= 8; values|= (buffer[i] & 0xff);
+        long  values=0;
+        for (int i=0; i<8;i++) {
+            values<<=8;values|=(buffer[i]&0xff);
         }
         return values;
     }
-    /*private void initMP() {
+    private void initJinZhang(MediaPlayer mp,String musicName,int lenth) {
         try {
-            AssetFileDescriptor fd = getAssets().openFd("samsara.mp3");
-        }catch (IOException ioe){
-
-        }
-            try {
-            mp.setDataSource(file.getPath());//设置播放音频文件的路径
-            mp.prepare();//mp就绪
-        } catch(Exceprion e) {
+            AssetFileDescriptor fd = getAssets().openFd(musicName);
+            mp.setDataSource(fd.getFileDescriptor(), fd.getStartOffset(),lenth*20000);
+            mp.prepare();
+        } catch(IOException e) {
             e.printStackTrace();
         }
-    }*/
+    }
+    private void initMP(MediaPlayer mp,String musicName) {
+        try {
+            AssetFileDescriptor fd = getAssets().openFd(musicName);
+            mp.setDataSource(fd.getFileDescriptor(), fd.getStartOffset(),fd.getLength() );
+            mp.prepare();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void relaseMP(MediaPlayer mp){
+        mp.stop();
+        mp.release();
+    }
 
 
 }

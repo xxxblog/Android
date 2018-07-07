@@ -40,7 +40,7 @@ public class ClientConnectThread extends Thread{
             mmSocket.connect();
             mHandler.sendEmptyMessage(Constant.MSG_CONNECTED_TO_SERVER);
         }catch (Exception connectException){
-            mHandler.sendMessage(mHandler.obtainMessage(Constant.MSG_ERROR,connectException));
+            mHandler.sendEmptyMessage(Constant.MSG_CONNECT_ERROR);
             try {
                 mmSocket.close();
             }catch (IOException closeException){}
@@ -53,7 +53,6 @@ public class ClientConnectThread extends Thread{
     private void manageConnectedSocket(BluetoothSocket mmSocket) {
         mHandler.sendEmptyMessage(Constant.MSG_CONNECTED_TO_SERVER);
         //因为发送数据都是一样的
-
         mConnectedThread = new ConnectedThread(mmSocket,mHandler);
         mConnectedThread.start();
     }

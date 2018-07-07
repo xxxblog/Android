@@ -11,9 +11,7 @@ import android.util.FloatMath;
 
 /**
  * 用于检测手机摇晃
- *
- * @author 郑智仁
- * @see <a href="http://blog.csdn.net/zhengzhiren" mce_href="http://blog.csdn.net/zhengzhiren">Blog</a>
+ * @author HH
  */
 public class ShakeDetector implements SensorEventListener {
     /**

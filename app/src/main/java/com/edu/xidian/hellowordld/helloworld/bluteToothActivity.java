@@ -55,53 +55,13 @@ public class bluteToothActivity extends Activity {
     public Bundle mBundle;
     ArrayAdapter dArrayAdapter;
     ArrayList bandDeviceList,findDeviceList ;
-    public MyAPP app;
-
     @SuppressLint("HandlerLeak")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blute_tooth);
-        //处理接收到的消息
-        mUIHandler= new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-                String info = (String) msg.obj;
-                switch (msg.what) {
-                    //服务器获得客户，使右边的bar停止
-                    case Constant.MSG_GOT_A_CLIENT:
-                        creteServerBar.setVisibility(View.INVISIBLE);
-                        Intent intent=new Intent();
-                        intent.setClass(bluteToothActivity.this, GameActivity.class);
-                        intent.putExtra("flag", 1);
-                        startActivity(intent);
-                        break;
-
-                    //服务的收到数据让右边的转
-                    case Constant.MSG_GOT_DATA:
-                        creteServerBar.setVisibility(View.VISIBLE);
-                        //gameview.setText(""+msg.obj);
-                        textView.setText(""+msg.obj);//获得传递过来的数据
-                        //Toast.makeText(bluteToothActivity.this, info, 0).show();
-                        break;
-
-                    //客户端发送成功，成功发送数据，让搜索的bar转
-                    case Constant.MSG_SEND_DATA:
-                        serchBar.setVisibility(View.VISIBLE);
-                        break;
-                    //出错让服务器右边转
-                    case Constant.MSG_ERROR:
-                        creteServerBar.setVisibility(View.VISIBLE);
-                        break;
-                }
-            }
-        };
-
-
         //**************测试用
         textView = findViewById(R.id.newdecie);
-        // 按钮定义
-        //gameview = findViewById(R.id.game_textview);
         serchButton = (Button) findViewById(R.id.serch_button);
         creteServerButton = (Button) findViewById(R.id.crete_server);
         mAdapter = new DeviceAdapter(mDeviceList,getApplicationContext());
@@ -136,26 +96,18 @@ public class bluteToothActivity extends Activity {
                 //绑定设备跟新
                 bindAapter.notifyDataSetChanged();
                 getBindDevice(BTAdapter);
-                //***************测试蓝牙连接后发送代码
-                /*String hello = "hello";
-                byte[] hi=hello.getBytes();
-                clientConnectThread.sendData(hi);*/
             }
         });
         //创建服务器按钮
         creteServerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /*creteServerBar.setVisibility(View.VISIBLE);
-                serverAcceptThread = new AcceptThread(BTAdapter,mUIHandler);
-                serverAcceptThread.start();*/
                 Intent intent=new Intent();
                 intent.setClass(bluteToothActivity.this, GameActivity.class);
                 intent.putExtra("flag", 1);
                 startActivity(intent);
             }
         });
-
 
         //********************蓝牙控制
         if(BTAdapter==null){
@@ -167,9 +119,7 @@ public class bluteToothActivity extends Activity {
         turnOnCanSee(BTAdapter);
         //获取绑定设备
         getBindDevice(BTAdapter);
-        //监听List
-        //mListView.setOnItemClickListener(bindDeviceClick);
-        //BTAdapter.startDiscovery();
+
         IntentFilter filter = new IntentFilter();
         //*************监听广播
         //开始查找
@@ -235,14 +185,13 @@ public class bluteToothActivity extends Activity {
                 clientConnectThread.cancel();
             }
 
-            //*******************测试在下一个界面连接服务器
+            //*******************在下一个界面连接服务器
             Intent intent=new Intent();
             intent.setClass(bluteToothActivity.this, GameActivity.class);
             intent.putExtra("flag", 2);
             intent.putExtra("i", i);
-            startActivity(intent);/**/
-            /*clientConnectThread = new ClientConnectThread(device,BTAdapter,mUIHandler);
-            clientConnectThread.start();*/
+            startActivity(intent);
+
         }
     };
 
@@ -277,17 +226,7 @@ public class bluteToothActivity extends Activity {
                     //通知Adapter更新数据
                     mAdapter.notifyDataSetChanged();
                 }
-                //bindAapter.notifyDataSetChanged();
-            } /*else if (BluetoothAdapter.ACTION_SCAN_MODE_CHANGED.equals(action)) {
-                //设备扫描方式发送改变时,显示进度条
-                int scanMode = intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE,0);
-                if(scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE){
-                    setProgressBarIndeterminateVisibility(true);
-                }else {
-                    setProgressBarIndeterminateVisibility(false);
-                }
-            }*/
-
+            }
         }
     };
 
