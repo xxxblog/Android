@@ -147,10 +147,20 @@ public class GameActivity extends Activity {
                         //gameview.setText("检测到正在发送消息");
                         break;
                     case Constant.MSG_ERROR:
+                        flagTime=123;
+                        iIsOrNotPlay=0;
+                        oIsOrNotPlay=0;
+                        myTime=flagTime;
+                        ontherTime=flagTime;
                         Toast.makeText(GameActivity.this,"连接断开",Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(GameActivity.this,bluteToothActivity.class);
                         startActivity(intent);
                     case Constant.MSG_CONNECT_ERROR:
+                        flagTime=123;
+                        iIsOrNotPlay=0;
+                        oIsOrNotPlay=0;
+                        myTime=flagTime;
+                        ontherTime=flagTime;
                         Toast.makeText(GameActivity.this,"请重新进入房间",Toast.LENGTH_SHORT).show();
                         Intent intentHelp = new Intent(GameActivity.this,bluteToothActivity.class);
                         startActivity(intentHelp);
@@ -261,6 +271,11 @@ public class GameActivity extends Activity {
                 gameImageview.setImageResource(R.drawable.win);
                 gameview.setText("你的手速快过了对方！");
             }
+            ontherTime=flagTime;
+            myTime=flagTime;
+            iIsOrNotPlay=0;
+            oIsOrNotPlay=0;
+            gameButton.setText("再次游戏");
         }
         else {
             if (oTime.equals(flagTime)){
@@ -272,11 +287,7 @@ public class GameActivity extends Activity {
                 gameview.setText("请拔出您的宝剑！");
             }
         }
-        ontherTime=flagTime;
-        myTime=flagTime;
-        iIsOrNotPlay=0;
-        oIsOrNotPlay=0;
-        gameButton.setText("再次游戏");
+
     }
 
     private void createServer() {
